@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 import graphene
 
 class Query(graphene.ObjectType):
-        hello = graphene.String(default_value="Hello, GraphQL!")
+        # Define a field called "hello" of type String
+            hello = graphene.String(description="A simple GraphQL query that returns a greeting.")
 
-        schema = graphene.Schema(query=Query)
+                # Resolver method for the "hello" field
+                    def resolve_hello(self, info):
+                                return "Hello, GraphQL!"
+
+                            # Create the schema with Query as the root
+                            schema = graphene.Schema(query=Query)
+
 
         
 
