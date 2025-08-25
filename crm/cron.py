@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 import datetime
 import logging
-import requests
+import requests  # Using requests for optional GraphQL check
 
-HEARTBEAT_LOG = "/tmp/crmheartbeatlog.txt"  # Correct file name
+HEARTBEAT_LOG = "/tmp/crmheartbeatlog.txt"  # No underscore
 
 def logcrmheartbeat():
     """Logs heartbeat message every 5 minutes."""
     timestamp = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
     message = f"{timestamp} CRM is alive"
 
-    # Append to log file
+    # Append to heartbeat log
     with open(HEARTBEAT_LOG, "a") as f:
         f.write(message + "\n")
 
-    # Optional GraphQL health check
+    # Optional GraphQL hello field check
     try:
         response = requests.post(
             "http://localhost:8000/graphql",
@@ -22,7 +22,7 @@ def logcrmheartbeat():
             timeout=5
         )
         if response.status_code == 200:
-            print("GraphQL endpoint is responsive.")
+            print("GraphQL endpoint responded to heartbeat check.")
     except requests.RequestException as e:
         logging.error(f"GraphQL health check failed: {e}")
 
