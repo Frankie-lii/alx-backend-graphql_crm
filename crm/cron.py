@@ -3,37 +3,26 @@ import datetime
 import logging
 import requests
 
-LOG_FILE = "/tmp/low_stock_updates_log.txt"
+HEARTBEAT_LOG = "/tmp/crmheartbeatlog.txt"  # Correct file name
 
-def update_low_stock():
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    mutation = """
-    mutation {
-        updateLowStockProducts {
-            updatedProducts {
-                name
-                stock
-            }
-            message
-        }
-    }
-    """
+def logcrmheartbeat():
+    """Logs heartbeat message every 5 minutes."""
+    timestamp = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+    message = f"{timestamp} CRM is alive"
 
+    # Append to log file
+    with open(HEARTBEAT_LOG, "a") as f:
+        f.write(message + "\n")
+
+    # Optional GraphQL health check
     try:
         response = requests.post(
             "http://localhost:8000/graphql",
-            json={"query": mutation},
-            timeout=10
+            json={"query": "{ hello }"},
+            timeout=5
         )
-        data = response.json().get("data", {}).get("updateLowStockProducts", {})
-        updated_products = data.get("updatedProducts", [])
-        message = data.get("message", "No response message")
-
-        with open(LOG_FILE, "a") as f:
-            f.write(f"{timestamp} - {message}\n")
-            for product in updated_products:
-                f.write(f"Product: {product['name']}, Stock: {product['stock']}\n")
-
-    except Exception as e:
-        logging.error(f"{timestamp} - Error updating low stock: {e}\n")
+        if response.status_code == 200:
+            print("GraphQL endpoint is responsive.")
+    except requests.RequestException as e:
+        logging.error(f"GraphQL health check failed: {e}")
 
